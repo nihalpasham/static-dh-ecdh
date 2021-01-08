@@ -1,3 +1,6 @@
+#![allow(missing_docs)]
+
+// Constants are self explanatory
 
 pub const DH_GROUP_5_PRIME: &str = "
 	FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1

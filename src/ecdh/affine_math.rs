@@ -12,16 +12,22 @@ use super::ecdh::{PkP384, SharedSecretP384};
 /// An enum for the various types of AffinePoint(s)
 #[derive(Debug, Clone, PartialEq)]
 pub enum APTypes {
+    /// Affine-Point Type for a point curve NIST-p384
     P384(MyAffinePoint<48>),
+    /// Affine-Point Type for a point curve NIST-p521
     P521(MyAffinePoint<66>),
+    /// Placeholder for more Affine-Point Types
     __Nonexhaustive,
 }
 
 /// An enum to hold the various types of BitArrays required for `affine-point math`.
 #[derive(Debug, Clone, PartialEq)]
 pub enum BitArrayTypes {
+    /// A variant to hold BitArrayType for p384
     P384([u8; 48 * 8]),
+    /// A variant to hold BitArrayType for p521
     P521([u8; 66 * 8]),
+    /// Placeholder variant to hold BitArrayTypes
     __Nonexhaustive,
 }
 
@@ -29,8 +35,11 @@ pub enum BitArrayTypes {
 /// included in the `elliptic-curve` library  
 #[derive(Debug, Clone, PartialEq)]
 pub enum EncodedTypes {
+    /// An EncodedPoint type for p384
     EncodedTypeP384(PkP384),
+    /// An EncodedPoint type for p521
     EncodedTypeP384_SS(SharedSecretP384),
+    /// Placeholder variant to hold EncodedPoint types
     __Nonexhaustive,
 }
 
@@ -41,8 +50,11 @@ pub enum EncodedTypes {
 /// Infinity - is just a special point usually named `O`. Its also referred to as the identity element of a prime field.
 #[derive(Debug, Clone, PartialEq)]
 pub struct MyAffinePoint<const N: usize> {
+    /// The x co-ordinate of a elliptic curve point modulo a prime 
     pub x: BigInt,
+    /// The y co-ordinate of a elliptic curve point modulo a prime 
     pub y: BigInt,
+    /// Is just a special point usually named `O`. In our case that's - (0,0, true) 
     pub infinity: bool,
 }
 

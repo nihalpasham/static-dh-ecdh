@@ -38,12 +38,19 @@ pub fn get_dh(group: u8) -> DH {
 /// Only DH5 and DH15 are supported as per the RFC 
 #[derive(Debug, PartialEq, Clone)]
 pub enum DH {
+    /// An enum to represent DH5 Group
     Dh5(DH5),
+    /// An enum to represent DH14 Group
     Dh14(DH14),
+    /// An enum to represent DH15 Group
     Dh15(DH15),
+    /// An enum to represent DH16 Group
     Dh16(DH16),
+    /// An enum to represent DH17 Group
     Dh17(DH17),
+    /// An enum to represent DH18 Group
     Dh18(DH18),
+    /// An enum to represent UnSupported Group
     UnSupported(&'static str),
 }
 /// A data struct to hold state for DH_GROUP_ID 5 as per RFC - https://tools.ietf.org/html/rfc3526
@@ -52,9 +59,9 @@ pub struct DH5 {
     prime_num: BigUint,
     generator: usize,
     exp_size: usize,
-    pub private_key: BigUint, // should be private but marked pub for testing
-    pub public_key: BigUint,
-    pub shared_secret: BigUint, // should be private but marked pub for testing
+    private_key: BigUint, // should be private but marked pub for testing
+    public_key: BigUint,
+    shared_secret: BigUint, // should be private but marked pub for testing
 }
 
 impl DH5 {
@@ -191,9 +198,9 @@ pub struct DH15 {
     prime_num: BigUint,
     generator: usize,
     exp_size: usize,
-    pub private_key: BigUint, // should be private but marked pub for testing
-    pub public_key: BigUint,
-    pub shared_secret: BigUint, // should be private but marked pub for testing
+    private_key: BigUint, // should be private but marked pub for testing
+    public_key: BigUint,
+    shared_secret: BigUint, // should be private but marked pub for testing
 }
 
 impl DH15 {
@@ -261,9 +268,9 @@ pub struct DH16 {
     prime_num: BigUint,
     generator: usize,
     exp_size: usize,
-    pub private_key: BigUint, // should be private but marked pub for testing
-    pub public_key: BigUint,
-    pub shared_secret: BigUint, // should be private but marked pub for testing
+    private_key: BigUint, // should be private but marked pub for testing
+    public_key: BigUint,
+    shared_secret: BigUint, // should be private but marked pub for testing
 }
 
 impl DH16 {
@@ -331,9 +338,9 @@ pub struct DH17 {
     prime_num: BigUint,
     generator: usize,
     exp_size: usize,
-    pub private_key: BigUint, // should be private but marked pub for testing
-    pub public_key: BigUint,
-    pub shared_secret: BigUint, // should be private but marked pub for testing
+    private_key: BigUint, // should be private but marked pub for testing
+    public_key: BigUint,
+    shared_secret: BigUint, // should be private but marked pub for testing
 }
 
 impl DH17 {
@@ -401,9 +408,9 @@ pub struct DH18 {
     prime_num: BigUint,
     generator: usize,
     exp_size: usize,
-    pub private_key: BigUint, // should be private but marked pub for testing
-    pub public_key: BigUint,
-    pub shared_secret: BigUint, // should be private but marked pub for testing
+    private_key: BigUint, // should be private but marked pub for testing
+    public_key: BigUint,
+    shared_secret: BigUint, // should be private but marked pub for testing
 }
 
 impl DH18 {

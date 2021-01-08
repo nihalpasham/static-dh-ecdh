@@ -22,7 +22,7 @@ fn main(){
     println!("alice_shared_secret: {}", alice_shared_secret);
     println!("bob_shared_secret:   {}", bob_shared_secret);
     
-    println!("alice_private_key: {}", alice.private_key);
-    println!("bob_private_key:   {}", bob.private_key);
+    // println!("alice_private_key: {}", alice.private_key); // if you want to examine this value, mark it public.
+    // println!("bob_private_key:   {}", bob.private_key);   // if you want to examine this value, mark it public.
 
 }

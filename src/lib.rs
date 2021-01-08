@@ -1,7 +1,13 @@
+//! Pure Rust implementations of static Diffie-Hellman key-exchange. 
+//! It includes impls for both plain vanilla DH and elliptic-curve DH.
+
 #![no_std]
 #![deny(unsafe_code)]
+#![deny(missing_docs)]
 
+/// ECDH implementation 
 pub mod ecdh;
+/// DH implementation
 pub mod dh;
 pub mod constants;
 

@@ -24,8 +24,10 @@ use crate::{CryptoError, Result};
 
 /// Implemented by types that have a fixed-length byte representation
 pub trait ToBytes {
+    /// An associated type to represent the serialized form of the implementing type.
     type OutputSize: ArrayLength<u8>;
 
+    /// Types implementing this method are serializable
     fn to_bytes(&self) -> GenericArray<u8, Self::OutputSize>;
 
     /// Returns the size (in bytes) of this type when serialized
@@ -35,6 +37,7 @@ pub trait ToBytes {
 }
 /// Implemented by types that can be deserialized from byte representation
 pub trait FromBytes: ToBytes + Sized {
+    /// Types implementing this method are de-serializable
     fn from_bytes(bytes: &[u8]) -> Result<Self>;
 }
 /// An ECDH-P256 private key is simply a scalar in the NIST P-256 field.
@@ -103,7 +106,7 @@ impl FromBytes for SkP256 {
     }
 }
 
-/// A struct to hold the computed shared secret.
+/// A struct to hold the computed p-256 shared secret
 #[derive(Debug, Clone, PartialEq)]
 pub struct SharedSecretP256(pub AffinePoint);
 
@@ -117,16 +120,23 @@ impl ToBytes for SharedSecretP256 {
         GenericArray::<u8, Self::OutputSize>::clone_from_slice(bytes.x().unwrap())
     }
 }
-
+/// A trait to describe the types, methods and functions of a key-exhange for a curve
 pub trait KeyExchange {
+    /// Secret key type
     type SKey: Clone + ToBytes + FromBytes;
+    /// Public key type
     type PubKey: Clone + ToBytes + FromBytes;
+    /// Shared Secret type
     type CompSecret: ToBytes;
 
+    /// A function to generate a random private key, given a 32 byte seed value. 
     fn generate_private_key(seed: [u8; 32]) -> Self::SKey;
+    /// A method to generate the public key, given a private key. 
     fn generate_public_key(sk: &Self::SKey) -> Self::PubKey;
+    /// A method to compute the shared secret, given a private key and public key.
     fn generate_shared_secret(sk: &Self::SKey, pk: &Self::PubKey) -> Result<Self::CompSecret>;
 }
+/// A struct that represents the ECDH implementation for the p-256 curve 
 pub struct ECDHNISTP256;
 
 impl KeyExchange for ECDHNISTP256 {
@@ -156,10 +166,13 @@ impl KeyExchange for ECDHNISTP256 {
     }
 }
 
+/// An ECDH-P384 private key is simply a scalar in the NIST P-384 field.
 #[derive(Debug, Clone)]
 pub struct SkP384(P384Secret);
+/// An ECDH-P384 public key. This is derived from the private key using scalar point multiplication.
 #[derive(Debug, Clone, PartialEq)]
 pub struct PkP384(pub PubKey<NistP384>);
+/// A struct to hold the computed p-384 shared secret
 #[derive(Debug, Clone, PartialEq)]
 pub struct SharedSecretP384(pub PubKey<NistP384>);
 
@@ -227,6 +240,7 @@ impl ToBytes for SharedSecretP384 {
     }
 }
 
+/// A struct that represents the ECDH implementation for the p-256 curve 
 pub struct ECDHNISTP384<const N: usize>;
 
 impl<const N: usize> KeyExchange for ECDHNISTP384<N> {
