@@ -1,4 +1,6 @@
 
+![crypto-code-decipher](https://user-images.githubusercontent.com/20253082/104021017-11ebee00-51e4-11eb-9663-ba8845a8ffcc.jpg "Fun encrypted text")
+
 ## What is it?
 
 Pure Rust implementations of static Diffie-Hellman key-exchange. It includes `impls` for both plain vanilla DH and elliptic-curve DH.
