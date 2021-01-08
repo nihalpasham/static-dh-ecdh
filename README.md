@@ -48,7 +48,7 @@ With that in mind, here are the caveats
 - `Side-channel` attacks have not been considered no attention has been paid to things like `constant time equality` operations. 
 - This crate borrows some of its types from RustCrypto's elliptic-curve library so as to build a uniform api and make it easy to integrate `rustcrypto-ecc` for when it adds support for other curves.
 - This crate includes curves that are not yet supported (or fully supported) by the RustCrypto project. List of supported curves  -
-    ○ **p256** - This is the 1 impl in this crate that you could probably use in a production environment as it was `lifted` (in an as-is from) from a pretty well-tested crate - `rust-hpke`, which in-turn uses RustCrypto's p256 crate as its base crate.
-    ○ **P384** - Implemented with `Affine-Point` math and a few additional types from RustoCrypto library. 
-    ○ **P521** - support to be added *(the impl will be similar to P384)*
-    ○ **Brainpool** - supported to be added *(the impl will be pretty similar to P384)*
+    - **p256** - This is the 1 impl in this crate that you could probably use in a production environment as it was `lifted` (in an as-is from) from a pretty well-tested crate - `rust-hpke`, which in-turn uses RustCrypto's p256 crate as its base crate.
+    - **P384** - Implemented with `Affine-Point` math and a few additional types from RustoCrypto library. 
+    - **P521** - support to be added *(the impl will be similar to P384)*
+    - **Brainpool** - supported to be added *(the impl will be pretty similar to P384)*
