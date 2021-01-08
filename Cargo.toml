@@ -6,11 +6,11 @@ edition = "2018"
 categories = ["Cryptography", "No standarad library"]
 description = "Pure Rust implementations of static Diffie-Hellman and elliptic curve Diffie-Hellman key-exchange."
 documentation = "https://docs.rs/static-dh-ecdh"
-homepage = ""
+homepage = "https://github.com/nihalpasham/static-dh-ecdh.git"
 keywords = ["ecdh", "dh", "keyexchange", "crypto", "prototyping"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
-repository = ""
+repository = "https://github.com/nihalpasham/static-dh-ecdh.git"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
