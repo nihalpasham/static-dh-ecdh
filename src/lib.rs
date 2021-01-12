@@ -9,6 +9,10 @@
 pub mod ecdh;
 /// DH implementation
 pub mod dh;
+/// A module to import Hash Types from RustCrypto
+pub mod digest;
+/// ECDSA implementation
+pub mod signatures;
 pub mod constants;
 
 
@@ -22,12 +26,14 @@ pub enum CryptoError {
     ECCError,
     /// Invalid encoding
     InvalidEncoding,
+    /// Signature Error
+    SignatureError,
 
     #[doc(hidden)]
     __Nonexhaustive,
 }
 
-/// The result type for Crypto.
+/// The result type for Crypto operations
 pub type Result<T> = core::result::Result<T, CryptoError>;
 
 impl fmt::Display for CryptoError {
@@ -35,6 +41,7 @@ impl fmt::Display for CryptoError {
         match self {
             &CryptoError::ECCError              => write!(f, "EC Crypto operation failed"),
             &CryptoError::InvalidEncoding       => write!(f, "Invalid encoding"),
+            &CryptoError::SignatureError        => write!(f, "Signature Error"),
             &CryptoError::__Nonexhaustive       => unreachable!(),
         }
     }   

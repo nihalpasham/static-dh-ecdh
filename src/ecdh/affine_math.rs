@@ -2,10 +2,15 @@
 
 use core::convert::TryInto;
 // use libc_print::libc_println;
-use num_bigint_dig::{BigInt, BigUint, Sign, ModInverse};
+use num_bigint_dig::{BigInt, BigUint, RandBigInt, Sign, ModInverse};
 use num_traits::{Zero};
 use generic_array::GenericArray;
 use p384::EncodedPoint;
+
+use crate::digest::SHA384Digest;
+use crate::{constants, dh};
+use crate::{Result, CryptoError};
+use rand;
 
 use super::ecdh::{PkP384, SharedSecretP384};
 
@@ -115,7 +120,7 @@ impl<const N: usize> MyAffinePoint<N> {
         &self,
         pointP: MyAffinePoint<N>,
         a: &BigInt,
-        b: &BigInt,
+        _b: &BigInt,
         modp: &BigInt,
     ) -> MyAffinePoint<N> {
         if bool::from(self.is_identity()) && bool::from(pointP.infinity) {
@@ -265,6 +270,26 @@ impl<const N: usize> MyAffinePoint<N> {
 
         }
     }
+
+    ///  A method to transform `EncodedPoint` types into `MyAffinePoint` types.
+    ///
+    /// TODO - `EncodedPoint` type needs to be generic here.
+    pub fn from_encoded_point(point: EncodedPoint) -> Self {
+        match N {
+            48 => {
+                let pubkey_x =
+                    BigInt::from_bytes_be(Sign::Plus, point.x().map(|x| x.as_slice()).unwrap());
+                let pubkey_y =
+                    BigInt::from_bytes_be(Sign::Plus, point.y().map(|y| y.as_slice()).unwrap());
+                MyAffinePoint {
+                    x: pubkey_x,
+                    y: pubkey_y,
+                    infinity: false,
+                }
+            }
+            _ => unimplemented!(),
+        }
+    }
 }
 
 impl<const N: usize> Default for MyAffinePoint<N> {
@@ -272,4 +297,150 @@ impl<const N: usize> Default for MyAffinePoint<N> {
     fn default() -> Self {
         Self::identity()
     }
+}
+
+// use libc_print::libc_println;
+/// A `SignerType` struct to sign messages and verify signatures.
+#[derive(Debug, Clone, PartialEq)]
+pub struct ECSignerType<const N: usize>;
+
+impl<const N: usize> ECSignerType<N> {
+    /// Given a message and a signing key, returns the signature.
+    /// 
+    /// `k` used here is an ephemeral scalar value,
+    /// As k is a random integer, signatures produced by this func are non-determinstic
+    ///
+    /// Note: `RNG` used here is `NOT` cryptographically secure.
+    pub fn sign(data: &[u8], sk: &[u8]) -> (BigInt, BigInt) {
+        let hash_type = match N {
+            48 => SHA384Digest,
+            _ => unimplemented!(),
+        };
+
+        let (a, b, modp, g_ord) = match N {
+            48 => get_p384_constants(),
+            _ => unimplemented!(),
+        };
+        let digest = hash_type.digest(data);
+        let e = BigInt::from_bytes_be(Sign::Plus, &digest); // what is `z's` bit-length,
+        let z = e; // do we need this - if e.bits() != 8 * N
+                   // {panic!("Ln must be equal to {:?} not {:?}", N * 8, e.bits())};
+        let mut r: BigInt = Zero::zero();
+        let mut s: BigInt = Zero::zero();
+        while &r == &BigInt::from(0) || &s == &BigInt::from(0) {
+            let mut rng = rand::thread_rng();
+            let k = rng.gen_biguint((N * 8 as usize) as usize) % &g_ord.to_biguint().unwrap();
+            if k < BigUint::from(1u8) || k > &g_ord.to_biguint().unwrap() - BigUint::from(1u8) {
+                panic!("k has to be within group order")
+            };
+            let gen = MyAffinePoint::<N>::generator();
+            let k_mul = match gen {
+                APTypes::P384(gen) => MyAffinePoint::<48>::double_and_add(
+                    // Scalar multiplication of k with Generator point for the curve
+                    gen,
+                    k.clone(),
+                    &a,
+                    &b,
+                    &modp,
+                ),
+                _ => unimplemented!(),
+            };
+
+            // Calculate `r` and  `s` components which together constitute an ECDSA signature.
+            r = k_mul.x % &g_ord;
+            if r != BigInt::from(0) {
+                let k_inverse = k.mod_inverse(&g_ord).unwrap();
+                let sk_bigint = BigInt::from_bytes_be(Sign::Plus, &sk);
+                s = (k_inverse * (&z + (&r * sk_bigint) % &g_ord)) % &g_ord;
+                if s != BigInt::from(0) {
+                    break;
+                }
+            }
+        }
+        (r, s)
+    }
+
+    /// Given a `message`, `signature` and the `corresponding public key` of the private key used to generate the signature,
+    /// returns a `Ok(true)` value if verification suceeds or an Error. 
+    pub fn verify(data: &[u8], signature: &[u8], pk: EncodedPoint) -> Result<bool> { // pk here is specific to p384 curve
+        if signature.len() != 2 * N {                                                // type needs fixing if we want to make this
+            panic!("invalid signature: {:?}", signature.len())                       // generic
+        };
+
+        let hash_type = match N {
+            48 => SHA384Digest,
+            _ => unimplemented!(),
+        };
+        let digest = hash_type.digest(data);
+        let e = BigInt::from_bytes_be(Sign::Plus, &digest);
+        let z = e;
+
+        let (a, b, modp, g_ord) = match N {
+            48 => get_p384_constants(),
+            _ => unimplemented!(),
+        };
+        let r_bytes: [u8; N] = signature[..N].try_into().unwrap();
+        let s_bytes: [u8; N] = signature[N..].try_into().unwrap();
+
+        let r = BigInt::from_bytes_be(Sign::Plus, &r_bytes);
+        let s = BigInt::from_bytes_be(Sign::Plus, &s_bytes);
+
+        if r < BigInt::from(1) || r > &g_ord - BigInt::from(1) {
+            return Err(CryptoError::SignatureError);
+        } else if s < BigInt::from(1) || s > &g_ord - BigInt::from(1) {
+            return Err(CryptoError::SignatureError);
+        }
+
+        // Calculate u1 and u2
+        let s_inverse = s.mod_inverse(&g_ord).unwrap();
+        let u1 = (z * &s_inverse) % &g_ord;
+        let u2 = (&r * &s_inverse) % &g_ord;
+
+        // Calculate curve point (x1, y1) = u1 * G + u2 * P, where G - generator and P - PublicKey
+        let gen = MyAffinePoint::<N>::generator();
+
+        // u1 * G - operation
+        let u1_mul_result = match gen {
+            APTypes::P384(gen) => {
+                MyAffinePoint::<48>::double_and_add(gen, u1.to_biguint().unwrap(), &a, &b, &modp)
+            }
+            _ => unimplemented!(),
+        };
+
+        // u2 * P - operation
+        let u2_mul_result = match N {
+            48 => { //Get P - PublicKey in affine-form.
+                let affine_pubkey = MyAffinePoint::<48>::from_encoded_point(pk);  
+                MyAffinePoint::<48>::double_and_add(                                         
+                    affine_pubkey,
+                    u2.to_biguint().unwrap(),
+                    &a,
+                    &b,
+                    &modp,
+                )
+            }
+            _ => unimplemented!(),
+        };
+        let result = u1_mul_result.do_the_math(u2_mul_result, &a, &b, &modp); // does point adddition
+        if r == (result.x % &g_ord) {
+            Ok(true)
+        } else {
+            Err(CryptoError::SignatureError)
+        }
+    }
+}
+
+/// Returns p384 constants as `BigInts`
+pub fn get_p384_constants() -> (BigInt, BigInt, BigInt, BigInt) {
+    let mod_prime =
+        dh::dh::unhexlify_to_bytearray::<48>(&constants::ECDH_NIST_384_MODP.replace("0x", ""));
+    let b_val = dh::dh::unhexlify_to_bytearray::<48>(&constants::ECDH_NIST_384_B_VAL.replace("0x", ""));
+    let group_order =
+        dh::dh::unhexlify_to_bytearray::<48>(&constants::ECDH_NIST_384_GROUP_ORDER.replace("0x", ""));
+
+    let a = BigInt::from(-3);
+    let b = BigInt::from_bytes_be(Sign::Plus, &b_val);
+    let modp = BigInt::from_bytes_be(Sign::Plus, &mod_prime);
+    let g_ord = BigInt::from_bytes_be(Sign::Plus, &group_order);
+    (a, b, modp, g_ord)
 }
