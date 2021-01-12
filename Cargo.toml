@@ -1,13 +1,13 @@
 [package]
 name = "static-dh-ecdh"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Twitter: @npashi <nihal.pasham@gmail.com>"]
 edition = "2018"
 categories = ["cryptography", "no-std"]
 description = "Pure Rust implementations of static Diffie-Hellman and elliptic curve Diffie-Hellman key-exchange."
 documentation = "https://docs.rs/static-dh-ecdh"
 homepage = "https://github.com/nihalpasham/static-dh-ecdh.git"
-keywords = ["ecdh", "dh", "keyexchange", "crypto", "prototyping"]
+keywords = ["ecdh", "dh", "keyexchange", "crypto", "prototyping", "ecdsa"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/nihalpasham/static-dh-ecdh.git"
